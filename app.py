@@ -313,6 +313,30 @@ if sel_servicer: loans = loans[loans["ServicerName"].isin(sel_servicer)]
 d0, d1 = pd.Timestamp(date_range[0]), pd.Timestamp(date_range[1])
 snaps = snaps_raw[snaps_raw["SnapshotDate"].between(d0, d1) & snaps_raw["LoanID"].isin(loans["LoanID"])]
 loss = loss_raw[loss_raw["ReportingDate"].between(d0, d1)]
+
+# Filter-aware export and a compact quality snapshot make the dashboard useful
+# beyond visual exploration: users can take the selected portfolio into Excel,
+# SQL, or a review workflow without changing the source CSV files.
+st.sidebar.divider()
+st.sidebar.markdown("### Export & data quality")
+st.sidebar.caption(f"{len(loans):,} of {len(loans_raw):,} loans selected")
+st.sidebar.download_button(
+    "Download filtered loans (CSV)",
+    data=loans.to_csv(index=False).encode("utf-8"),
+    file_name="filtered_loan_portfolio.csv",
+    mime="text/csv",
+    use_container_width=True,
+)
+with st.sidebar.expander("Data-quality snapshot"):
+    quality_rows = [
+        {"Check": "Loan rows", "Value": f"{len(loans_raw):,}"},
+        {"Check": "Unique LoanID", "Value": f"{loans_raw['LoanID'].nunique():,}"},
+        {"Check": "Duplicate LoanID", "Value": f"{loans_raw['LoanID'].duplicated().sum():,}"},
+        {"Check": "Loan missing values", "Value": f"{int(loans_raw.isna().sum().sum()):,}"},
+        {"Check": "Snapshot rows", "Value": f"{len(snaps_raw):,}"},
+    ]
+    show_df(pd.DataFrame(quality_rows), height=220)
+
 if loans.empty:
     st.warning("No loans match the selected slicers.")
     st.stop()
