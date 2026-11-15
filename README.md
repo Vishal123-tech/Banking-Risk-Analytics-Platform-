@@ -51,6 +51,12 @@ All dashboards share interactive filters for reporting date, IFRS 9 stage, delin
 
 The following screenshots are from the project’s Power BI reporting layer and risk-simulation experience.
 
+### Streamlit application preview
+
+This preview shows the interactive scenario-selection experience used to launch the risk simulation workflow.
+
+![Streamlit scenario arena](documentation/screenshots/01-scenario-arena.png)
+
 | Executive Summary | Portfolio Overview |
 | --- | --- |
 | ![Executive Summary](documentation/screenshots/02-executive-summary.png) | ![Portfolio Overview](documentation/screenshots/03-portfolio-overview.png) |
@@ -69,7 +75,7 @@ The following screenshots are from the project’s Power BI reporting layer and 
 
 | Investor Reporting | Scenario Arena |
 | --- | --- |
-| ![Investor reporting dashboard](documentation/screenshots/12-investor-reporting.png) | ![Scenario arena](documentation/screenshots/01-scenario-arena.png) |
+| ![Investor reporting dashboard](documentation/screenshots/12-investor-reporting.png) | ![Streamlit scenario arena](documentation/screenshots/01-scenario-arena.png) |
 
 <details>
 <summary>View the scenario brief and decision-centre screens</summary>
