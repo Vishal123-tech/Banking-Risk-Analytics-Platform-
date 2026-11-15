@@ -47,6 +47,39 @@ The repository includes:
 
 All dashboards share interactive filters for reporting date, IFRS 9 stage, delinquency status, servicer, CIBIL score, and number format. The sidebar also provides a filtered-loan CSV export and a compact data-quality snapshot.
 
+## Dashboard screenshots
+
+The following screenshots are from the project’s Power BI reporting layer and risk-simulation experience.
+
+| Executive Summary | Portfolio Overview |
+| --- | --- |
+| ![Executive Summary](documentation/screenshots/02-executive-summary.png) | ![Portfolio Overview](documentation/screenshots/03-portfolio-overview.png) |
+
+| IFRS 9 Risk | DPD & Roll Rate |
+| --- | --- |
+| ![IFRS 9 dashboard](documentation/screenshots/04-ifrs9-dashboard.png) | ![DPD and Roll Rate dashboard](documentation/screenshots/05-dpd-roll-rate.png) |
+
+| Vintage Analytics | Dynamic Loss |
+| --- | --- |
+| ![Vintage dashboard](documentation/screenshots/06-vintage-dashboard.png) | ![Dynamic loss dashboard](documentation/screenshots/08-dynamic-loss.png) |
+
+| Waterfall Reporting | Stress Testing |
+| --- | --- |
+| ![Waterfall dashboard](documentation/screenshots/10-waterfall-dashboard.png) | ![Stress testing dashboard](documentation/screenshots/11-stress-testing.png) |
+
+| Investor Reporting | Scenario Arena |
+| --- | --- |
+| ![Investor reporting dashboard](documentation/screenshots/12-investor-reporting.png) | ![Scenario arena](documentation/screenshots/01-scenario-arena.png) |
+
+<details>
+<summary>View the scenario brief and decision-centre screens</summary>
+
+![Scenario brief](documentation/screenshots/13-scenario-brief.png)
+
+![Decision centre](documentation/screenshots/14-decision-centre.png)
+
+</details>
+
 ## Architecture
 
 ```mermaid
@@ -123,7 +156,8 @@ Banking-Risk-Analytics-Platform-master/
 │   ├── data_dictionary.txt             # Core dimensions and facts
 │   ├── warehouse_architecture.txt      # Raw, staging, dimension, and fact layers
 │   ├── advanced_sql_features.txt       # Views, indexes, CTEs, windows, procedures
-│   └── stress_testing_framework.txt    # Scenario and impact framework
+│   ├── stress_testing_framework.txt    # Scenario and impact framework
+│   └── screenshots/                    # Power BI and simulation screenshots
 ├── etl/                                # Extract, validation, and load utilities
 ├── sql/                                # Warehouse DDL and risk analytics queries
 └── powerbi/
