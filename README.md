@@ -57,6 +57,12 @@ This preview shows the interactive scenario-selection experience used to launch 
 
 ![Streamlit scenario arena](documentation/screenshots/01-scenario-arena.png)
 
+### Streamlit DPD & Roll Rate page
+
+This Streamlit page combines the roll-rate transition matrix, delinquency trend, loan-count distribution, interactive slicers, filtered CSV export, and the data-quality snapshot.
+
+![Streamlit DPD and Roll Rate page](documentation/screenshots/15-streamlit-dpd-roll-rate.png)
+
 | Executive Summary | Portfolio Overview |
 | --- | --- |
 | ![Executive Summary](documentation/screenshots/02-executive-summary.png) | ![Portfolio Overview](documentation/screenshots/03-portfolio-overview.png) |
