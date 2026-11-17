@@ -1,7 +1,7 @@
 """
 Banking Securitisation & Loan Risk Analytics Platform — Streamlit
-9-page report with a dedicated, per-dashboard color-theming system and an
-equal-width top navigation bar (replacing st.tabs).
+9-page report with a dedicated, per-dashboard color-theming system and a
+sidebar dashboard selector.
 """
 import inspect
 from pathlib import Path
@@ -130,7 +130,7 @@ st.markdown(
 
 
 def apply_dashboard_theme(dashboard_name: str) -> dict:
-    """Inject page-specific CSS (KPI cards, sidebar accents, nav bar) and return the theme dict."""
+    """Inject page-specific CSS (KPI cards and sidebar accents) and return the theme dict."""
     t = THEME_CONFIG[dashboard_name]
     css = f"""
     <style>
@@ -163,34 +163,6 @@ def apply_dashboard_theme(dashboard_name: str) -> dict:
     """
     st.markdown(css, unsafe_allow_html=True)
     return t
-
-
-def render_nav(active: str):
-    """Equal-width, evenly-spread top navigation bar — an alternative to st.tabs."""
-    st.markdown(
-        """
-        <style>
-        div[data-testid="stHorizontalBlock"].nav-row div.stButton > button {
-            width: 100%; border-radius: 8px 8px 0 0; border: 1px solid #E2E8F0; border-bottom: none;
-            font-size: .78rem; padding: .5rem .2rem; white-space: normal; line-height: 1.15;
-        }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
-    cols = st.columns(len(PAGE_ORDER), gap="small")
-    for col, name in zip(cols, PAGE_ORDER):
-        t = THEME_CONFIG[name]
-        is_active = name == active
-        with col:
-            if st.button(t["label"], key=f"nav_{name}", use_container_width=True,
-                         type="primary" if is_active else "secondary"):
-                st.session_state["page"] = name
-                st.rerun()
-    st.markdown(
-        f"<div style='height:3px;background:{THEME_CONFIG[active]['accent']};margin-top:-14px;"
-        f"border-radius:2px;'></div>", unsafe_allow_html=True,
-    )
 
 
 _PLOTLY_WIDTH = "width" in inspect.signature(st.plotly_chart).parameters
@@ -268,13 +240,19 @@ if data is None:
 loans_raw, snaps_raw, loss_raw, vint = data["loans"], data["snaps"], data["loss"], data["vint"]
 
 # ====================================================================================
-# 4. NAVIGATION (equal-width bar, alternative to st.tabs) + ACTIVE THEME
+# 4. SIDEBAR NAVIGATION + ACTIVE THEME
 # ====================================================================================
 if "page" not in st.session_state:
     st.session_state["page"] = PAGE_ORDER[0]
-active_page = st.session_state["page"]
 
-render_nav(active_page)
+st.sidebar.markdown("### Dashboard")
+active_page = st.sidebar.selectbox(
+    "Dashboard page",
+    PAGE_ORDER,
+    index=PAGE_ORDER.index(st.session_state["page"]),
+    key="page_selector",
+)
+st.session_state["page"] = active_page
 theme = apply_dashboard_theme(active_page)
 st.markdown(
     f"<div class='theme-banner'>Theme: <b>{theme['label']}</b> — KPI accents, slicers and chart palette "

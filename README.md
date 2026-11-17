@@ -38,7 +38,7 @@ The checked-in sample contains 500 loans, 6,000 DPD snapshots, 12 monthly loss o
 | Investor Reporting | Portfolio balance, 30+ DPD exposure, vintage losses, and cash-flow views |
 | Stress Testing | Illustrative base, recession, COVID, and 2008 sensitivity scenarios |
 
-Interactive filters cover reporting date, IFRS 9 stage, delinquency status, servicer, CIBIL score, and number format. The sidebar also includes filtered-loan CSV export and a data-quality snapshot.
+Use the **Dashboard page** selector in the sidebar to move between all nine report pages. Interactive filters cover reporting date, IFRS 9 stage, delinquency status, servicer, CIBIL score, and number format. The sidebar also includes filtered-loan CSV export and a data-quality snapshot.
 
 ## Screenshot gallery
 
