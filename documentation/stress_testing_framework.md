@@ -1,6 +1,6 @@
 # Stress Testing Framework
 
-The dashboard applies illustrative PD and LGD multipliers to the selected base ECL:
+The dashboard applies illustrative PD and LGD multipliers to the selected base ECL. Stressed PD and LGD are capped at 1.0 before the ECL calculation:
 
 | Scenario | PD multiplier | LGD multiplier |
 | --- | ---: | ---: |
@@ -12,7 +12,7 @@ The dashboard applies illustrative PD and LGD multipliers to the selected base E
 
 ## Formula used in the demo
 
-Stress ECL = Base ECL × PD multiplier × LGD multiplier
+Stress ECL = Base ECL × capped PD factor × capped LGD factor
 
 ## Interpretation
 

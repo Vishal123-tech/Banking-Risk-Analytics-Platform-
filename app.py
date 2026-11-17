@@ -636,10 +636,15 @@ def page_stress(theme):
     rows = []
     for name in chosen:
         pm, lm = STRESS_SCENARIOS[name]
-        stress = base_ecl * pm * lm
+        stress_pd = min(base_pd * pm, 1.0)
+        stress_lgd = min(base_lgd * lm, 1.0)
+        pd_factor = stress_pd / base_pd if base_pd else 0.0
+        lgd_factor = stress_lgd / base_lgd if base_lgd else 0.0
+        stress = base_ecl * pd_factor * lgd_factor
         rows.append(dict(Scenario=name, **{"Base ECL": base_ecl, "Stress ECL": stress, "ECL Increase": stress - base_ecl,
                                             "ECL Increase %": (stress / base_ecl - 1) if base_ecl else 0,
-                                            "Stress PD": base_pd * pm, "Stress LGD": base_lgd * lm}))
+                                            "Stress PD": stress_pd, "Stress LGD": stress_lgd,
+                                            "PD Multiplier Applied": pd_factor, "LGD Multiplier Applied": lgd_factor}))
     st_df = pd.DataFrame(rows)
     worst = st_df.loc[st_df["Stress ECL"].idxmax()]
     c1, c2, c3, c4 = st.columns(4)
@@ -667,7 +672,7 @@ def page_stress(theme):
                   .format({"Base ECL": "{:,.2f}", "Stress ECL": "{:,.2f}", "ECL Increase": "{:,.2f}", "ECL Increase %": "{:.0%}"}))
         show_df(styled, height=250)
         st.markdown(
-            "<div class='note'>Stress ECL = Base ECL × PD multiplier × LGD multiplier. "
+            "<div class='note'>Stress ECL = Base ECL × capped PD factor × capped LGD factor. "
             "Multipliers per scenario: " + ", ".join(f"{k} (PD ×{a}, LGD ×{b})" for k, (a, b) in STRESS_SCENARIOS.items()) + ".</div>",
             unsafe_allow_html=True)
 

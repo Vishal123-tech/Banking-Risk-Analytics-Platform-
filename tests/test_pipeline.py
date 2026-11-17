@@ -18,8 +18,9 @@ def test_checked_in_portfolio_schema_and_uniqueness():
 def test_pd_model_generates_diagnostics(tmp_path):
     metrics = run(ROOT / "data" / "auto_loan_securitisation_data.csv", tmp_path)
     assert metrics["rows"] == 500
-    assert metrics["defaults"] == 9
+    assert metrics["defaults"] == 42
     assert 0 <= metrics["oof_auc"] <= 1
+    assert metrics["oof_auc"] > 0.5
     assert 0 <= metrics["oof_ks"] <= 1
     assert (tmp_path / "pd_model_metrics.json").exists()
     assert (tmp_path / "pd_scores.csv").exists()

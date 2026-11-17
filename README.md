@@ -9,6 +9,8 @@
 [![Power BI](https://img.shields.io/badge/Reporting-Power%20BI-F2C811?logo=powerbi&logoColor=111827)](https://powerbi.microsoft.com/)
 [![Tests](https://img.shields.io/badge/Tests-pytest-0A9EDC?logo=pytest&logoColor=white)](https://pytest.org/)
 
+**Live demo:** not deployed yet. Run the Streamlit app locally with the commands in [RUN_INSTRUCTIONS.md](RUN_INSTRUCTIONS.md).
+
 ## Scope and data disclaimer
 
 This is a synthetic, generic ABS-style auto-loan simulation. It uses Indian-style borrower fields such as INR and CIBIL scores alongside broadly used securitisation concepts such as servicers, repossession, waterfall cash flow, CPR, and stress scenarios. It is not a jurisdiction-specific RBI/Ind AS 109 implementation, a regulatory capital model, or a production credit decision system.
@@ -58,10 +60,10 @@ For a printable preview, open powerbi/Securitisation_Risk_Analytics_screenshot_p
 
 ## Key findings from the checked-in sample
 
-- Stage 1 represents 85.89% of current balance; Stage 2 represents 8.54%; Stage 3 represents 5.57%. Stage 2 plus Stage 3 therefore accounts for 14.11% of current balance.
-- The largest observed direct deterioration in the DPD transition matrix is 30–59 DPD to 60–89 DPD at 52.31% of transitions from the 30–59 DPD prior bucket.
-- Base ECL is ₹11.66M. Under the illustrative Severe Recession multipliers, modeled ECL rises to ₹22.74M, a 95% increase. Under the illustrative 2008 Crisis multipliers, it rises to ₹34.99M, approximately 3.0× the base ECL.
-- The sample contains 9 default events out of 500 loans, an observed default rate of 1.8%. This low event count is a key limitation for model validation.
+- Stage 1 represents 44.61% of current balance; Stage 2 represents 31.94%; Stage 3 represents 23.45%. Stage 2 plus Stage 3 therefore accounts for 55.39% of current balance.
+- The largest direct worsening transition in the DPD matrix is Current → 1–29 DPD at 10.00%; the 30–59 DPD → 60–89 DPD transition is 8.25%.
+- Base ECL is ₹16.43M. With the capped stress calculation, Severe Recession ECL rises to ₹32.04M, a 95% increase; illustrative 2008 Crisis ECL rises to ₹49.29M, or 3.0× base ECL.
+- The regenerated sample contains 42 default events out of 500 loans, an observed default rate of 8.4%.
 
 ## Baseline PD model
 
@@ -79,11 +81,11 @@ The repository includes risk_modeling/pd_model.py, a reproducible logistic-regre
 | Metric | Result |
 | --- | ---: |
 | Rows | 500 |
-| Default events | 9 |
-| Out-of-fold AUC | 0.3745 |
-| Out-of-fold KS | 0.0887 |
+| Default events | 42 |
+| Out-of-fold AUC | 0.7252 |
+| Out-of-fold KS | 0.3903 |
 
-The low AUC and KS are reported deliberately: with only 9 default events and synthetic labels, this baseline does not demonstrate production predictive power. It is a reproducible modeling diagnostic and a starting point for future work with a larger, better-calibrated default history.
+The synthetic generator derives the default label from CIBIL, DTI, LTV, and a random noise term by construction, so this result demonstrates recovery of a known simulated signal rather than production predictive power. The sample is still small and synthetic; the AUC is a reproducible modeling diagnostic, not a validated credit scorecard.
 
 Run it with:
 
@@ -98,7 +100,7 @@ The script writes metrics and loan-level PD scores to outputs/pd_model.
 The dashboard uses supplied synthetic PD_Estimate, LGD_Estimate, EAD, and ECL_Provision fields. The stress-testing page applies:
 
 ```text
-Stress ECL = Base ECL × PD multiplier × LGD multiplier
+Stress ECL = Base ECL × capped PD factor × capped LGD factor
 ```
 
 This is intentionally simplified. It does not implement:
@@ -109,6 +111,8 @@ This is intentionally simplified. It does not implement:
 - Calibrated transition matrices, PIT/TTC PDs, or regulatory capital treatment.
 
 The scenario multipliers are illustrative sensitivity assumptions, not calibrated values:
+
+The application caps stressed PD and LGD at 1.0 before calculating ECL, so a multiplier cannot create an impossible probability or loss-given-default above 100%.
 
 | Scenario | PD multiplier | LGD multiplier |
 | --- | ---: | ---: |
@@ -184,14 +188,10 @@ pytest -q
 
 The repository also includes a GitHub Actions workflow that compiles the Python files and runs pytest on pushes and pull requests.
 
-## Screenshot gallery
-
-The repository contains Power BI and simulation screenshots for browser-viewable previews. The PBIX report itself requires Microsoft Power BI Desktop. There is currently no public live demo; run the Streamlit app locally using the commands above.
-
 ## Repository structure
 
 ```text
-Banking-Risk-Analytics-Platform-/
+Banking-Risk-Analytics-Platform/
 ├── app.py
 ├── data/
 │   ├── auto_loan_securitisation_data.csv
@@ -242,10 +242,10 @@ The project supports risk and operations teams by helping them:
 
 ## License
 
-MIT License. The public Olist-style or synthetic data used in this portfolio project may have separate dataset terms.
+MIT License. The data in this repository is synthetic and generated by `data/generate_synthetic_portfolio.py`.
 
 ## Author
 
 **Vishal Yadav**
 
-[GitHub profile](https://github.com/Vishal123-tech) · [Project repository](https://github.com/Vishal123-tech/Banking-Risk-Analytics-Platform-)
+[GitHub profile](https://github.com/Vishal123-tech) · [Project repository](https://github.com/Vishal123-tech/Banking-Risk-Analytics-Platform)

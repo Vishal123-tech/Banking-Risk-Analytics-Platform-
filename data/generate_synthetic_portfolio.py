@@ -20,6 +20,10 @@ SERVICERS = ["Bajaj Finance Auto", "HDFC Bank Auto Finance", "ICICI Auto Loans"]
 VEHICLE_TYPES = ["Hatchback", "Sedan", "SUV", "MUV", "Compact SUV"]
 
 
+def sigmoid(value: np.ndarray) -> np.ndarray:
+    return 1 / (1 + np.exp(-value))
+
+
 def generate_loans(rng: np.random.Generator, n: int) -> pd.DataFrame:
     loan_id = np.array([f"L{idx:05d}" for idx in range(1, n + 1)])
     origination = pd.Timestamp("2022-01-01") + pd.to_timedelta(rng.integers(0, 730, n), unit="D")
@@ -32,7 +36,18 @@ def generate_loans(rng: np.random.Generator, n: int) -> pd.DataFrame:
     income = rng.lognormal(mean=np.log(1_200_000), sigma=0.5, size=n).round(2)
     dti = np.clip(rng.normal(0.34, 0.12, n), 0.08, 0.85).round(4)
     ltv_orig = np.clip(rng.normal(0.72, 0.14, n), 0.35, 1.05).round(4)
-    pd_est = np.clip(0.01 + (700 - cibil_orig) * 0.00035 + (dti - 0.3) * 0.06 + (ltv_orig - 0.7) * 0.04, 0.005, 0.35)
+    # The default label is generated from a transparent latent risk score so
+    # the baseline PD model can recover a meaningful signal by construction.
+    # Noise keeps the sample imperfect and prevents the model from being a
+    # deterministic rules engine.
+    latent_risk = (
+        -2.40
+        + (700 - cibil_orig) * 0.018
+        + (dti - 0.34) * 4.0
+        + (ltv_orig - 0.72) * 3.2
+        + rng.normal(0, 0.35, n)
+    )
+    pd_est = np.clip(sigmoid(latent_risk), 0.005, 0.35)
     is_defaulted = rng.random(n) < pd_est
     current_balance = (original_amount * rng.uniform(0.45, 0.98, n)).round(2)
     current_vehicle_value = (original_amount / ltv_orig * rng.uniform(0.65, 1.0, n)).round(2)
