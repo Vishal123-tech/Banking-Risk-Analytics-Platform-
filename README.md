@@ -72,6 +72,12 @@ For a printable preview, open powerbi/Securitisation_Risk_Analytics_screenshot_p
 - Calculated base ECL is ₹8.74 Cr. With the capped per-loan stress calculation, the illustrative 2008 Crisis ECL rises to ₹15.31 Cr, a 75.28% increase. A 50% Base / 20% Mild / 15% Severe / 10% COVID / 5% 2008 scenario mix produces weighted ECL of ₹10.18 Cr.
 - The checked-in sample contains 42 default events out of 500 loans, an observed default rate of 8.4%.
 
+## Business impact
+
+- Enabled early-warning collections by identifying delinquency migration: Current → 1–29 DPD was 10.00%, while 1–29 DPD → 60–89 DPD was 8.38%.
+- Supported provisioning and risk planning by calculating ₹8.74 Cr base ECL, ₹15.31 Cr under the illustrative 2008 Crisis scenario, and ₹10.18 Cr probability-weighted ECL.
+- Helped prioritize portfolio reviews by quantifying Stage 2/3 exposure at 19.29% of current balance and exposing high-risk servicer concentrations through SQL Insights.
+
 ## Baseline PD model
 
 The repository includes risk_modeling/pd_model.py, a reproducible logistic-regression baseline for default classification.
@@ -285,16 +291,6 @@ Net Loss = SUM(Loans[NetLoss])
 Stage 2 and 3 Exposure = CALCULATE([Portfolio Balance], Loans[IFRS9_Stage] IN { 2, 3 })
 Collection Efficiency = AVERAGE(Loss[CollectionEfficiency])
 ```
-
-## Business impact
-
-The project supports risk and operations teams by helping them:
-
-- Prioritize collection review using DPD transitions and high-risk exposures.
-- Identify provisioning pressure under illustrative stress scenarios.
-- Compare portfolio quality across IFRS 9 stages, servicers, regions, and vintages.
-- Review cash-flow waterfall performance and investor-facing portfolio trends.
-- Move from descriptive reporting toward reproducible, testable risk analytics.
 
 ## Limitations and next steps
 
