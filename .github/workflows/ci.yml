@@ -26,4 +26,4 @@ jobs:
         run: python -m py_compile app.py risk_modeling/pd_model.py data/generate_synthetic_portfolio.py
 
       - name: Run tests
-        run: pytest -q
+        run: python -m pytest -q
