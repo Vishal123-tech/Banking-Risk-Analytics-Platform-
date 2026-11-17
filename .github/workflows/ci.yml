@@ -26,13 +26,4 @@ jobs:
         run: python -m py_compile app.py risk_modeling/pd_model.py data/generate_synthetic_portfolio.py
 
       - name: Run tests
-        shell: bash
-        run: |
-          set +e
-          pytest -q 2>&1 | tee pytest.log
-          test_status=${PIPESTATUS[0]}
-          if [ "$test_status" -ne 0 ]; then
-            summary=$(tr '\n' ' ' < pytest.log | cut -c1-900)
-            echo "::error file=.github/workflows/ci.yml,line=29::$summary"
-            exit "$test_status"
-          fi
+        run: pytest -q
