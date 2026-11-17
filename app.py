@@ -4,6 +4,7 @@ Banking Securitisation & Loan Risk Analytics Platform — Streamlit
 sidebar dashboard selector.
 """
 import inspect
+import sqlite3
 from pathlib import Path
 
 import numpy as np
@@ -11,6 +12,8 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
+
+from risk_modeling.ecl_engine import add_ecl_metrics, stress_ecl_table, weighted_ecl
 
 st.set_page_config(page_title="Banking Risk Analytics Platform", page_icon="🏦", layout="wide")
 
@@ -90,6 +93,13 @@ THEME_CONFIG = {
         "bar": "#EA580C", "line": "#DC2626", "area_fill": "rgba(234,88,12,0.3)", "secondary": "#94A3B8",
         "kpi_baseline": "#047857", "kpi_stressed": "#C2410C",
     },
+    "SQL Insights": {
+        "label": "SQL Insights",
+        "kpi_bg": "#FFFFFF", "kpi_text": "#0F172A", "accent": "#7C3AED",
+        "slicer_border": "#7C3AED", "slicer_highlight": "#EDE9FE",
+        "seq": ["#7C3AED", "#2563EB", "#14B8A6", "#F59E0B", "#DC2626"],
+        "bar": "#7C3AED", "line": "#2563EB", "area_fill": "rgba(124,58,237,0.28)", "secondary": "#475569",
+    },
 }
 PAGE_ORDER = list(THEME_CONFIG.keys())
 
@@ -101,6 +111,7 @@ STRESS_SCENARIOS = {
     "Base": (1.00, 1.00), "Mild Recession": (1.25, 1.10), "Severe Recession": (1.50, 1.30),
     "COVID Shock": (1.80, 1.20), "2008 Crisis": (2.00, 1.50),
 }
+STRESS_WEIGHTS = {"Base": 0.50, "Mild Recession": 0.20, "Severe Recession": 0.15, "COVID Shock": 0.10, "2008 Crisis": 0.05}
 WATERFALL_DEDUCTIONS = {
     "Senior Fees": 500_000, "Class A Interest": 3_000_000, "Class A Principal": 10_000_000,
     "Class B Interest": 1_000_000, "Class B Principal": 3_000_000, "Residual Distribution": 1_500_000,
@@ -238,6 +249,7 @@ if data is None:
     st.error("Data files not found: " + ", ".join(missing) + ". Place the four CSVs in a `data/` folder next to `app.py`.")
     st.stop()
 loans_raw, snaps_raw, loss_raw, vint = data["loans"], data["snaps"], data["loss"], data["vint"]
+loans_raw = add_ecl_metrics(loans_raw)
 
 # ====================================================================================
 # 4. SIDEBAR NAVIGATION + ACTIVE THEME
@@ -285,7 +297,7 @@ def money(x):
     return f"{x:,.2f}"
 
 loans = loans_raw[loans_raw["CIBIL_Score_Current"].between(*sel_cibil)]
-if sel_stage: loans = loans[loans["StageLabel"].isin(sel_stage)]
+if sel_stage: loans = loans[loans["Stage_Model_Label"].isin(sel_stage)]
 if sel_status: loans = loans[loans["DelinquencyStatus"].isin(sel_status)]
 if sel_servicer: loans = loans[loans["ServicerName"].isin(sel_servicer)]
 d0, d1 = pd.Timestamp(date_range[0]), pd.Timestamp(date_range[1])
@@ -361,7 +373,7 @@ def vintage_lines(y, title, theme, height=340):
 
 
 def stage_kpi(stage):
-    return loans.loc[loans["StageLabel"] == stage, "EAD"].sum()
+    return loans.loc[loans["Stage_Model_Label"] == stage, "EAD"].sum()
 
 # ====================================================================================
 # 7. PAGE RENDERERS
@@ -370,7 +382,7 @@ def page_executive(theme):
     page_title("Executive Summary Dashboard")
     kpi_row([
         ("Portfolio Balance", money(loans["CurrentBalance"].sum())),
-        ("Total ECL", money(loans["ECL_Provision"].sum())),
+        ("Modeled ECL", money(loans["ECL_Model"].sum())),
         ("Net Loss", money(loans["NetLoss"].sum())),
         ("Collection Efficiency (avg)", f"{loss['CollectionEfficiency'].mean():.2f}" if len(loss) else "–"),
     ])
@@ -382,8 +394,8 @@ def page_executive(theme):
         fig.update_layout(yaxis_tickformat=".2s")
         show(style(fig, theme, legend=False), "ex1")
     with c2:
-        g = loans.groupby("StageLabel", as_index=False)["CurrentBalance"].sum()
-        show(pie_of(g, "StageLabel", "CurrentBalance", "Current Balance by IFRS9 Stage", theme, hole=0.6), "ex2")
+        g = loans.groupby("Stage_Model_Label", as_index=False)["CurrentBalance"].sum()
+        show(pie_of(g, "Stage_Model_Label", "CurrentBalance", "Current Balance by Modeled Stage", theme, hole=0.6), "ex2")
     c3, c4 = st.columns(2)
     with c3:
         show(line_by(loss, "ReportingDate", "MonthlyDefaultRate", "Monthly Default Rate by ReportingDate", theme), "ex3")
@@ -395,7 +407,7 @@ def page_executive(theme):
 def page_portfolio(theme):
     page_title("Portfolio Overview Dashboard")
     kpi_row([
-        ("IFRS9 ECL", money(loans["ECL_Provision"].sum())),
+        ("Modeled ECL", money(loans["ECL_Model"].sum())),
         ("Current Balance", money(loans["CurrentBalance"].sum())),
         ("Origination Balance", money(loans["OriginalLoanAmount"].sum())),
         ("Total Payments Made", f"{loans['TotalPaymentsMade'].sum():,.0f}"),
@@ -430,13 +442,13 @@ def page_ifrs9(theme):
         ("Stage 1 Exposure", money(stage_kpi("Stage 1"))),
         ("Stage 2 Exposure", money(stage_kpi("Stage 2"))),
         ("Stage 3 Exposure", money(stage_kpi("Stage 3"))),
-        ("IFRS9 ECL", money(loans["ECL_Provision"].sum())),
+        ("Modeled ECL", money(loans["ECL_Model"].sum())),
     ])
     bc = theme.get("bucket_colors")
     c1, c2 = st.columns(2)
     with c1:
-        g = loans.groupby("StageLabel", as_index=False)["CurrentBalance"].sum()
-        show(pie_of(g, "StageLabel", "CurrentBalance", "Current Balance by IFRS9 Stage", theme, colors=bc, hole=0.6), "if1")
+        g = loans.groupby("Stage_Model_Label", as_index=False)["CurrentBalance"].sum()
+        show(pie_of(g, "Stage_Model_Label", "CurrentBalance", "Current Balance by DPD-Based Stage", theme, colors=bc, hole=0.6), "if1")
     with c2:
         g = loans.groupby("BorrowerAge", as_index=False)["IFRS9_Stage"].sum()
         fig = px.line(g, x="BorrowerAge", y="IFRS9_Stage", title="Sum of IFRS9_Stage by Borrower Age")
@@ -444,14 +456,14 @@ def page_ifrs9(theme):
         show(style(fig, theme, legend=False), "if2")
     c3, c4 = st.columns(2)
     with c3:
-        g = loans.groupby("StageLabel", as_index=False)["ECL_Provision"].sum()
-        fig = px.bar(g, x="StageLabel", y="ECL_Provision", title="ECL Provision by IFRS9 Stage",
-                     color="StageLabel", color_discrete_map=bc)
+        g = loans.groupby("Stage_Model_Label", as_index=False)["ECL_Model"].sum()
+        fig = px.bar(g, x="Stage_Model_Label", y="ECL_Model", title="Calculated ECL by DPD-Based Stage",
+                     color="Stage_Model_Label", color_discrete_map=bc)
         fig.update_layout(yaxis_tickformat=".2s")
         show(style(fig, theme, legend=False), "if3")
     with c4:
-        g = loans.groupby("StageLabel", as_index=False)["InterestRate"].mean()
-        show(pie_of(g, "StageLabel", "InterestRate", "WAC by IFRS9 Stage", theme, colors=bc), "if4")
+        g = loans.groupby("Stage_Model_Label", as_index=False)["InterestRate"].mean()
+        show(pie_of(g, "Stage_Model_Label", "InterestRate", "WAC by DPD-Based Stage", theme, colors=bc), "if4")
 
 
 def page_dpd(theme):
@@ -588,7 +600,7 @@ def page_investor(theme):
     page_title("Investor Reporting Dashboard")
     kpi_row([
         ("Portfolio Balance", money(loans["CurrentBalance"].sum())),
-        ("Expected Credit Loss", money(loans["ECL_Provision"].sum())),
+        ("Modeled Expected Credit Loss", money(loans["ECL_Model"].sum())),
         ("Net Loss", money(loss["NetLoss_ThisMonth"].sum())),
         ("Collection Efficiency (avg)", f"{loss['CollectionEfficiency'].mean():.2f}" if len(loss) else "–"),
     ])
@@ -605,31 +617,72 @@ def page_investor(theme):
         show(waterfall_fig(waterfall_frame(loss), theme, 380), "ir4")
 
 
+def page_sql_insights(theme):
+    page_title("SQL Insights Dashboard")
+    st.caption("SQLite runs in memory on the currently filtered portfolio and snapshot data; no database installation is required.")
+    conn = sqlite3.connect(":memory:")
+    try:
+        loans.to_sql("loan_portfolio", conn, index=False, if_exists="replace")
+        snaps.to_sql("dpd_snapshots", conn, index=False, if_exists="replace")
+        queries = {
+            "ECL by modeled stage": """
+                SELECT Stage_Model_Label AS stage,
+                       COUNT(*) AS loans,
+                       ROUND(SUM(EAD), 2) AS ead,
+                       ROUND(SUM(ECL_Model), 2) AS modeled_ecl,
+                       ROUND(SUM(ECL_Model) / NULLIF(SUM(EAD), 0), 4) AS ecl_rate
+                FROM loan_portfolio
+                GROUP BY Stage_Model_Label
+                ORDER BY stage
+            """,
+            "High-risk servicer exposure": """
+                SELECT ServicerName AS servicer,
+                       COUNT(*) AS loans,
+                       ROUND(SUM(CurrentBalance), 2) AS current_balance,
+                       ROUND(SUM(ECL_Model), 2) AS modeled_ecl,
+                       ROUND(AVG(PD_12M_Model), 4) AS avg_pd_12m
+                FROM loan_portfolio
+                WHERE Stage_Model >= 2
+                GROUP BY ServicerName
+                ORDER BY modeled_ecl DESC
+            """,
+            "DPD roll-rate transitions": """
+                SELECT DPD_Bucket_Prior AS prior_bucket,
+                       DPD_Bucket AS current_bucket,
+                       COUNT(*) AS transitions,
+                       ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER (PARTITION BY DPD_Bucket_Prior), 2) AS roll_rate_pct
+                FROM dpd_snapshots
+                GROUP BY DPD_Bucket_Prior, DPD_Bucket
+                ORDER BY prior_bucket, roll_rate_pct DESC
+            """,
+        }
+        selected_query = st.selectbox("Query", list(queries), key="sql_query_selector")
+        query = queries[selected_query]
+        st.code(query.strip(), language="sql")
+        result = pd.read_sql_query(query, conn)
+        show_df(result, height=330)
+        st.info("These results are generated by SQL against the same filtered data used by the dashboard; the query layer is not a static screenshot.")
+    finally:
+        conn.close()
+
+
 def page_stress(theme):
     page_title("Stress Testing Dashboard")
     chosen = st.multiselect("Scenario", list(STRESS_SCENARIOS), default=list(STRESS_SCENARIOS), placeholder="All")
     chosen = chosen or list(STRESS_SCENARIOS)
-    base_ecl = loans["ECL_Provision"].sum()
-    base_pd, base_lgd = loans["PD_Estimate"].mean(), loans["LGD_Estimate"].mean()
-    rows = []
-    for name in chosen:
-        pm, lm = STRESS_SCENARIOS[name]
-        stress_pd = min(base_pd * pm, 1.0)
-        stress_lgd = min(base_lgd * lm, 1.0)
-        pd_factor = stress_pd / base_pd if base_pd else 0.0
-        lgd_factor = stress_lgd / base_lgd if base_lgd else 0.0
-        stress = base_ecl * pd_factor * lgd_factor
-        rows.append(dict(Scenario=name, **{"Base ECL": base_ecl, "Stress ECL": stress, "ECL Increase": stress - base_ecl,
-                                            "ECL Increase %": (stress / base_ecl - 1) if base_ecl else 0,
-                                            "Stress PD": stress_pd, "Stress LGD": stress_lgd,
-                                            "PD Multiplier Applied": pd_factor, "LGD Multiplier Applied": lgd_factor}))
-    st_df = pd.DataFrame(rows)
+    scenario_table = stress_ecl_table(loans, STRESS_SCENARIOS)
+    st_df = scenario_table[scenario_table["Scenario"].isin(chosen)].copy()
+    weights = {name: STRESS_WEIGHTS[name] for name in chosen}
+    st_df["Scenario Weight"] = st_df["Scenario"].map(weights)
+    weighted = weighted_ecl(st_df, weights)
+    base_ecl = float(loans["ECL_Model"].sum())
     worst = st_df.loc[st_df["Stress ECL"].idxmax()]
-    c1, c2, c3, c4 = st.columns(4)
+    c1, c2, c3, c4, c5 = st.columns(5)
     c1.metric("Baseline ECL", money(base_ecl))
-    c2.metric(f"Stressed ECL ({worst['Scenario']})", money(worst["Stress ECL"]))
-    c3.metric("ECL Increase", money(worst["ECL Increase"]))
-    c4.metric("ECL Increase %", f"{worst['ECL Increase %'] * 100:,.0f}%")
+    c2.metric("Weighted ECL", money(weighted))
+    c3.metric(f"Worst case ({worst['Scenario']})", money(worst["Stress ECL"]))
+    c4.metric("Worst-case increase", money(worst["ECL Increase"]))
+    c5.metric("Worst-case %", f"{worst['ECL Increase %'] * 100:,.0f}%")
 
     c1, c2 = st.columns([1, 1.15])
     with c1:
@@ -645,13 +698,13 @@ def page_stress(theme):
             tt = 0 if hi == lo else (v - lo) / (hi - lo)
             return f"background-color: rgb(255,{int(255 * (1 - tt))},0)"
 
-        disp = st_df[["Scenario", "Base ECL", "Stress ECL", "ECL Increase", "ECL Increase %"]].sort_values("Scenario")
+        disp = st_df[["Scenario", "Scenario Weight", "Base ECL", "Stress ECL", "ECL Increase", "ECL Increase %"]].sort_values("Scenario")
         styled = (disp.style.map(heat, subset=["Stress ECL"])
-                  .format({"Base ECL": "{:,.2f}", "Stress ECL": "{:,.2f}", "ECL Increase": "{:,.2f}", "ECL Increase %": "{:.0%}"}))
-        show_df(styled, height=250)
+                  .format({"Scenario Weight": "{:.0%}", "Base ECL": "{:,.2f}", "Stress ECL": "{:,.2f}", "ECL Increase": "{:,.2f}", "ECL Increase %": "{:.0%}"}))
+        show_df(styled, height=275)
         st.markdown(
-            "<div class='note'>Stress ECL = Base ECL × capped PD factor × capped LGD factor. "
-            "Multipliers per scenario: " + ", ".join(f"{k} (PD ×{a}, LGD ×{b})" for k, (a, b) in STRESS_SCENARIOS.items()) + ".</div>",
+            "<div class='note'>Stress ECL is calculated per loan as capped PD × capped LGD × EAD × lifetime multiplier. "
+            "Weighted ECL uses illustrative scenario weights: " + ", ".join(f"{k} {v:.0%}" for k, v in STRESS_WEIGHTS.items()) + ". No macroeconomic series is fitted in this synthetic demo.</div>",
             unsafe_allow_html=True)
 
     c3, c4 = st.columns(2)
@@ -671,6 +724,7 @@ PAGE_RENDERERS = {
     "Executive Summary": page_executive, "Portfolio Overview": page_portfolio, "IFRS-9": page_ifrs9,
     "DPD & Roll Rate": page_dpd, "Vintage": page_vintage, "Dynamic Loss": page_dynamic_loss,
     "Waterfall": page_waterfall, "Investor Reporting": page_investor, "Stress Testing": page_stress,
+    "SQL Insights": page_sql_insights,
 }
 
 PAGE_RENDERERS[active_page](theme)

@@ -16,7 +16,7 @@ import pandas as pd
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import roc_auc_score, roc_curve
+from sklearn.metrics import brier_score_loss, roc_auc_score, roc_curve
 from sklearn.model_selection import StratifiedKFold
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
@@ -69,7 +69,7 @@ def build_model() -> Pipeline:
             (
                 "model",
                 LogisticRegression(
-                    class_weight="balanced",
+                    class_weight=None,
                     max_iter=2000,
                     C=0.5,
                     random_state=RANDOM_STATE,
@@ -119,6 +119,10 @@ def run(data_path: Path, output_dir: Path) -> dict:
         "random_state": RANDOM_STATE,
         "oof_auc": round(float(roc_auc_score(y, oof_probability)), 4),
         "oof_ks": round(ks_statistic(y, oof_probability), 4),
+        "mean_predicted_pd": round(float(oof_probability.mean()), 4),
+        "observed_default_rate": round(float(y.mean()), 4),
+        "brier_score": round(float(brier_score_loss(y, oof_probability)), 4),
+        "calibration_abs_error": round(float(abs(oof_probability.mean() - y.mean())), 4),
         "folds": fold_metrics,
     }
 
@@ -128,9 +132,18 @@ def run(data_path: Path, output_dir: Path) -> dict:
     scored["PD_Score_OOF"] = oof_probability.round(6)
     scored["PD_Score_Fitted"] = final_model.predict_proba(X)[:, 1].round(6)
 
+    feature_names = final_model.named_steps["preprocess"].get_feature_names_out()
+    coefficients = final_model.named_steps["model"].coef_[0]
+    feature_importance = pd.DataFrame(
+        {"feature": feature_names, "coefficient": coefficients}
+    )
+    feature_importance["abs_coefficient"] = feature_importance["coefficient"].abs()
+    feature_importance = feature_importance.sort_values("abs_coefficient", ascending=False)
+
     output_dir.mkdir(parents=True, exist_ok=True)
     (output_dir / "pd_model_metrics.json").write_text(json.dumps(metrics, indent=2), encoding="utf-8")
     scored.to_csv(output_dir / "pd_scores.csv", index=False)
+    feature_importance.to_csv(output_dir / "pd_feature_importance.csv", index=False)
     print(json.dumps(metrics, indent=2))
     return metrics
 
