@@ -7,7 +7,7 @@
 [![MySQL](https://img.shields.io/badge/SQL-MySQL-4479A1?logo=mysql&logoColor=white)](https://www.mysql.com/)
 [![scikit--learn](https://img.shields.io/badge/Modeling-scikit--learn-F7931E?logo=scikit-learn&logoColor=111827)](https://scikit-learn.org/)
 [![Power BI](https://img.shields.io/badge/Reporting-Power%20BI-F2C811?logo=powerbi&logoColor=111827)](https://powerbi.microsoft.com/)
-[![Tests](https://img.shields.io/badge/Tests-pytest-0A9EDC?logo=pytest&logoColor=white)](https://pytest.org/)
+[![CI tests](https://github.com/Vishal123-tech/Banking-Risk-Analytics-Platform-/actions/workflows/ci.yml/badge.svg)](https://github.com/Vishal123-tech/Banking-Risk-Analytics-Platform-/actions/workflows/ci.yml)
 
 **Live demo:** [Open the Streamlit dashboard](https://n4dmtn9tondqgarhqhzkbn.streamlit.app/) · For local setup, see [RUN_INSTRUCTIONS.md](RUN_INSTRUCTIONS.md).
 
@@ -130,9 +130,10 @@ flowchart LR
     B --> C[Current Streamlit CSV demo]
     A -. optional load .-> D[MySQL warehouse tables]
     D --> E[MySQL views and analytics SQL]
-    E -. optional reporting .-> F[BI or SQL outputs]
+    E -. optional reporting .-> F[SQL outputs]
     B --> G[Baseline PD model]
     G --> H[PD diagnostics and scores]
+    A -. direct import .-> I[Power BI report / PDF preview]
 ```
 
 The solid path is the currently working Streamlit demo. The dotted path is the optional MySQL implementation route; the current Streamlit app does not yet query MySQL directly.
