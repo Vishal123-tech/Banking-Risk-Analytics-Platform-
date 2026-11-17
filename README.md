@@ -9,7 +9,7 @@
 [![Power BI](https://img.shields.io/badge/Reporting-Power%20BI-F2C811?logo=powerbi&logoColor=111827)](https://powerbi.microsoft.com/)
 [![Tests](https://img.shields.io/badge/Tests-pytest-0A9EDC?logo=pytest&logoColor=white)](https://pytest.org/)
 
-**Live demo:** not deployed yet. Run the Streamlit app locally with the commands in [RUN_INSTRUCTIONS.md](RUN_INSTRUCTIONS.md).
+**Live demo:** [Open the Streamlit dashboard](https://n4dmtn9tondqgarhqhzkbn.streamlit.app/) · For local setup, see [RUN_INSTRUCTIONS.md](RUN_INSTRUCTIONS.md).
 
 ## Scope and data disclaimer
 
