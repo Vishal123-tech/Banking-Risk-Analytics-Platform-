@@ -1,29 +1,16 @@
-# Banking Risk Analytics Platform — Run Guide
+# Banking Risk Analytics Suite — Run Guide
 
-## Local Streamlit app
+## Local Streamlit dashboard
 
-The dashboard reads the four CSV files from data/ and does not require MySQL for the interactive demo.
-
-### Repository layout
-
-```text
-app.py
-requirements.txt
-.streamlit/config.toml
-data/
-  auto_loan_securitisation_data.csv
-  dpd_snapshot_history.csv
-  dynamic_loss_monthly.csv
-  static_pool_vintage_data.csv
-```
+The dashboard reads the four checked-in CSV files from data/ and does not require MySQL for the interactive demo.
 
 ### Windows PowerShell
 
 ```powershell
 python -m venv .venv
 .\\.venv\\Scripts\\Activate.ps1
-pip install -r requirements.txt
-streamlit run app.py
+pip install -r requirements-dev.txt
+python -m streamlit run app.py
 ```
 
 ### macOS/Linux
@@ -31,28 +18,55 @@ streamlit run app.py
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt
-streamlit run app.py
+pip install -r requirements-dev.txt
+python -m streamlit run app.py
 ```
 
-## Streamlit Community Cloud
+Open the local URL shown by Streamlit, normally http://localhost:8501.
 
-1. Push the repository to GitHub and keep app.py and data/ at the repository root.
-2. Open share.streamlit.io and create an app from the repository.
-3. Select app.py as the main file.
-4. Every git push can trigger a fresh deployment.
+## Reproducible synthetic data
 
-## Optional SQL / Power BI workflow
+The checked-in sample is preserved. Generate a fresh deterministic sample into a separate folder:
 
-1. Review documentation/warehouse_architecture.txt and documentation/data_dictionary.txt.
-2. Create tables using sql/create_tables.sql.
-3. Apply sql/indexes.sql, sql/views.sql, and the analytical SQL files as needed.
-4. Use the utilities in etl/ for validation and loading experiments.
-5. Open powerbi/Securitisation_Risk_Analytics.pbix in Power BI Desktop for the report layer.
+```bash
+python data/generate_synthetic_portfolio.py --seed 42 --output-dir data/generated
+```
+
+## Baseline PD model
+
+Run the leakage-aware logistic-regression baseline:
+
+```bash
+python risk_modeling/pd_model.py
+```
+
+The command writes AUC/KS diagnostics and loan-level scores to outputs/pd_model.
+
+## Tests
+
+```bash
+pytest -q
+```
+
+GitHub Actions runs compilation and pytest on pushes and pull requests.
+
+## Optional MySQL workflow
+
+The Streamlit app currently reads CSV files directly. The SQL folder is an optional MySQL warehouse path:
+
+1. Review documentation/warehouse_architecture.md and documentation/data_dictionary.md.
+2. Create tables with sql/create_tables.sql.
+3. Apply sql/indexes.sql and sql/views.sql.
+4. Run the analytical scripts for IFRS 9, roll rates, vintage, collections, and stress testing.
+5. Connect the resulting MySQL views to a BI tool if required.
+
+## Power BI
+
+Open powerbi/Securitisation_Risk_Analytics.pbix in Power BI Desktop. The repository also contains screenshot previews because PBIX files require Power BI Desktop.
 
 ## Troubleshooting
 
 - **Data files not found:** run Streamlit from the repository root and confirm the four CSV files are inside data/.
 - **PowerShell blocks activation:** run Set-ExecutionPolicy -Scope Process Bypass for the current terminal, then activate .venv again.
-- **Port already in use:** run streamlit run app.py --server.port 8502.
-- **SQL connection errors:** the Streamlit demo reads CSVs directly; database connectivity is only needed for the optional ETL workflow.
+- **Port already in use:** run python -m streamlit run app.py --server.port 8502.
+- **SQL connection errors:** the interactive demo is CSV-based; MySQL is only required for the optional warehouse workflow.

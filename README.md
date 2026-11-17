@@ -1,134 +1,114 @@
-# 🏦 Banking Risk Analytics Platform
+# 🏦 Banking Risk Analytics Suite
 
-> An end-to-end analytics platform for securitised auto-loan portfolios, combining Python, SQL, IFRS 9 risk metrics, interactive Streamlit dashboards, and Power BI reporting.
+> A reproducible portfolio project for a synthetic securitised auto-loan portfolio, combining a Streamlit dashboard, optional MySQL warehouse patterns, baseline PD modeling, IFRS 9-style risk analysis, and Power BI reporting.
 
 [![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![Streamlit](https://img.shields.io/badge/App-Streamlit-FF4B4B?logo=streamlit&logoColor=white)](https://streamlit.io/)
-[![SQL](https://img.shields.io/badge/Analytics-SQL-4479A1?logo=mysql&logoColor=white)](https://www.mysql.com/)
+[![MySQL](https://img.shields.io/badge/SQL-MySQL-4479A1?logo=mysql&logoColor=white)](https://www.mysql.com/)
+[![scikit--learn](https://img.shields.io/badge/Modeling-scikit--learn-F7931E?logo=scikit-learn&logoColor=111827)](https://scikit-learn.org/)
 [![Power BI](https://img.shields.io/badge/Reporting-Power%20BI-F2C811?logo=powerbi&logoColor=111827)](https://powerbi.microsoft.com/)
-[![Status](https://img.shields.io/badge/Status-Portfolio%20Project-16A34A)](https://github.com/Vishal123-tech/Banking-Risk-Analytics-Platform-)
+[![Tests](https://img.shields.io/badge/Tests-pytest-0A9EDC?logo=pytest&logoColor=white)](https://pytest.org/)
 
-## Overview
+## Scope and data disclaimer
 
-This project simulates a real-world banking risk analytics workflow for a securitised auto-loan portfolio. It turns raw loan, delinquency, loss, and vintage data into decision-ready views for portfolio monitoring, expected credit loss analysis, collections, investor reporting, and stress testing.
+This is a synthetic, generic ABS-style auto-loan simulation. It uses Indian-style borrower fields such as INR and CIBIL scores alongside broadly used securitisation concepts such as servicers, repossession, waterfall cash flow, CPR, and stress scenarios. It is not a jurisdiction-specific RBI/Ind AS 109 implementation, a regulatory capital model, or a production credit decision system.
 
-The repository includes:
+The checked-in sample contains 500 loans, 6,000 DPD snapshots, 12 monthly loss observations, and 375 vintage observations. The small sample is useful for demonstrating engineering and analytics patterns, but it is too small for production model validation.
 
-- A nine-page Streamlit dashboard with responsive Plotly charts.
-- A reusable Python data-loading and filtering layer.
-- SQL scripts for warehouse tables, views, indexes, CTEs, window functions, and procedures.
-- ETL and data-quality utilities.
-- A Power BI report for executive and risk reporting.
-- Documentation covering the warehouse architecture, data dictionary, and stress-testing framework.
+## What is working today
 
-## Business questions answered
-
-- How healthy is the current securitised portfolio?
-- How is exposure distributed across IFRS 9 Stages 1, 2, and 3?
-- Which delinquency buckets and transitions require attention?
-- How do loan vintages perform as months-on-book increase?
-- What are the current loss, recovery, collection, and excess-spread trends?
-- How does expected credit loss change under recession and shock scenarios?
-- Which portfolio views are most useful for risk, collections, investors, and management?
+- The Streamlit application reads the four checked-in CSV files directly and runs without a database connection.
+- The MySQL folder is an optional warehouse implementation path with DDL, views, indexes, CTEs, window functions, and analytical queries.
+- The baseline PD script uses origination-time features and 3-fold stratified out-of-fold evaluation.
+- The Power BI report and screenshot gallery provide management-style reporting examples.
 
 ## Dashboard experience
 
-| Dashboard | What it highlights |
+| Dashboard | Decision support |
 | --- | --- |
 | Executive Summary | Portfolio balance, ECL, net loss, collection efficiency, and headline trends |
-| Portfolio Overview | CIBIL distribution, LTV exposure, borrower profile, and regional views |
-| IFRS-9 | Stage exposure, ECL provisions, and stage-level pricing metrics |
-| DPD & Roll Rate | 30+/60+/90+ DPD exposure, delinquency migration, and roll-rate matrix |
-| Vintage | Cohort loss curves, recoveries, pool factor, and remaining balance |
-| Dynamic Loss | Monthly loss, CPR, collection efficiency, and balance movement |
+| Portfolio Overview | CIBIL, LTV, borrower, vehicle, and regional exposure |
+| IFRS-9 | Stage exposure, provisions, and stage-level pricing indicators |
+| DPD & Roll Rate | 30+/60+/90+ DPD exposure and prior-to-current delinquency transitions |
+| Vintage | Cohort loss curves, pool factor, recoveries, and remaining balance |
+| Dynamic Loss | Monthly gross loss, net loss, CPR, recoveries, and excess spread |
 | Waterfall | Collections, recoveries, fees, principal, interest, and residual cash flows |
-| Investor Reporting | Balance trends, 30+ DPD exposure, vintage losses, and cash-flow views |
-| Stress Testing | Base, mild, severe, COVID shock, and 2008 crisis ECL scenarios |
+| Investor Reporting | Portfolio balance, 30+ DPD exposure, vintage losses, and cash-flow views |
+| Stress Testing | Illustrative base, recession, COVID, and 2008 sensitivity scenarios |
 
-All dashboards share interactive filters for reporting date, IFRS 9 stage, delinquency status, servicer, CIBIL score, and number format. The sidebar also provides a filtered-loan CSV export and a compact data-quality snapshot.
+Interactive filters cover reporting date, IFRS 9 stage, delinquency status, servicer, CIBIL score, and number format. The sidebar also includes filtered-loan CSV export and a data-quality snapshot.
 
-## Dashboard screenshots
+## Screenshot gallery
 
-The following screenshots are from the project’s Power BI reporting layer and risk-simulation experience.
+Representative screenshots are stored in documentation/screenshots for browser-viewable previews:
 
-### Streamlit application preview
-
-This preview shows the interactive scenario-selection experience used to launch the risk simulation workflow.
-
-![Streamlit scenario arena](documentation/screenshots/01-scenario-arena.png)
-
-### Streamlit DPD & Roll Rate page
-
-This Streamlit page combines the roll-rate transition matrix, delinquency trend, loan-count distribution, interactive slicers, filtered CSV export, and the data-quality snapshot.
-
-![Streamlit DPD and Roll Rate page](documentation/screenshots/15-streamlit-dpd-roll-rate.png)
-
-| Executive Summary | Portfolio Overview |
+| Streamlit DPD & Roll Rate | Power BI Executive Summary |
 | --- | --- |
-| ![Executive Summary](documentation/screenshots/02-executive-summary.png) | ![Portfolio Overview](documentation/screenshots/03-portfolio-overview.png) |
+| ![Streamlit DPD and Roll Rate](documentation/screenshots/15-streamlit-dpd-roll-rate.png) | ![Power BI Executive Summary](documentation/screenshots/02-executive-summary.png) |
 
-| IFRS 9 Risk | DPD & Roll Rate |
-| --- | --- |
-| ![IFRS 9 dashboard](documentation/screenshots/04-ifrs9-dashboard.png) | ![DPD and Roll Rate dashboard](documentation/screenshots/05-dpd-roll-rate.png) |
+The supporting simulation screens have a clear three-step purpose:
 
-| Vintage Analytics | Dynamic Loss |
-| --- | --- |
-| ![Vintage dashboard](documentation/screenshots/06-vintage-dashboard.png) | ![Dynamic loss dashboard](documentation/screenshots/08-dynamic-loss.png) |
+1. **Scenario Arena:** choose the stress context.
+2. **Scenario Brief:** review the mission, portfolio impact, and available analyses.
+3. **Decision Centre:** choose a risk-management response and review the recommended analysis path.
 
-| Waterfall Reporting | Stress Testing |
-| --- | --- |
-| ![Waterfall dashboard](documentation/screenshots/10-waterfall-dashboard.png) | ![Stress testing dashboard](documentation/screenshots/11-stress-testing.png) |
+The PBIX report requires Power BI Desktop; the screenshots provide a lightweight preview for GitHub visitors.
 
-| Investor Reporting | Scenario Arena |
-| --- | --- |
-| ![Investor reporting dashboard](documentation/screenshots/12-investor-reporting.png) | ![Streamlit scenario arena](documentation/screenshots/01-scenario-arena.png) |
+For a printable preview, open powerbi/Securitisation_Risk_Analytics_screenshot_preview.pdf.
 
-<details>
-<summary>View the scenario brief and decision-centre screens</summary>
+## Key findings from the checked-in sample
 
-![Scenario brief](documentation/screenshots/13-scenario-brief.png)
+- Stage 1 represents 85.89% of current balance; Stage 2 represents 8.54%; Stage 3 represents 5.57%. Stage 2 plus Stage 3 therefore accounts for 14.11% of current balance.
+- The largest observed direct deterioration in the DPD transition matrix is 30–59 DPD to 60–89 DPD at 52.31% of transitions from the 30–59 DPD prior bucket.
+- Base ECL is ₹11.66M. Under the illustrative Severe Recession multipliers, modeled ECL rises to ₹22.74M, a 95% increase. Under the illustrative 2008 Crisis multipliers, it rises to ₹34.99M, approximately 3.0× the base ECL.
+- The sample contains 9 default events out of 500 loans, an observed default rate of 1.8%. This low event count is a key limitation for model validation.
 
-![Decision centre](documentation/screenshots/14-decision-centre.png)
+## Baseline PD model
 
-</details>
+The repository includes risk_modeling/pd_model.py, a reproducible logistic-regression baseline for default classification.
 
-## Architecture
+### Engineering choices
 
-```mermaid
-flowchart LR
-    A[CSV portfolio data] --> B[Python loading and validation]
-    B --> C[Filtered analytical data]
-    C --> D[Streamlit dashboards]
-    A --> E[SQL warehouse scripts]
-    E --> F[Risk and performance analytics]
-    F --> G[Power BI reporting]
+- Uses origination-time information such as origination CIBIL score, income, DTI, LTV, loan amount, term, rate, borrower profile, vehicle type, channel, and region.
+- Excludes current delinquency, loss, ECL, and default-outcome fields from the feature set to reduce target leakage.
+- Handles missing values, scales numeric features, one-hot encodes categorical features, and applies class-balanced logistic regression.
+- Uses a fixed random seed of 42 and 3-fold stratified out-of-fold predictions.
+
+### Sample diagnostics
+
+| Metric | Result |
+| --- | ---: |
+| Rows | 500 |
+| Default events | 9 |
+| Out-of-fold AUC | 0.3745 |
+| Out-of-fold KS | 0.0887 |
+
+The low AUC and KS are reported deliberately: with only 9 default events and synthetic labels, this baseline does not demonstrate production predictive power. It is a reproducible modeling diagnostic and a starting point for future work with a larger, better-calibrated default history.
+
+Run it with:
+
+```bash
+python risk_modeling/pd_model.py
 ```
 
-## Analytics included
+The script writes metrics and loan-level PD scores to outputs/pd_model.
 
-### Credit risk and IFRS 9
+## Simplified IFRS 9 and stress assumptions
 
-- Probability of Default (PD), Loss Given Default (LGD), and Exposure at Default (EAD).
-- Expected Credit Loss (ECL) analysis using the formula ECL = PD × LGD × EAD.
-- Stage 1, Stage 2, and Stage 3 portfolio segmentation.
-- High-risk loan, state, servicer, and exposure analysis.
+The dashboard uses supplied synthetic PD_Estimate, LGD_Estimate, EAD, and ECL_Provision fields. The stress-testing page applies:
 
-### Delinquency and collections
+```text
+Stress ECL = Base ECL × PD multiplier × LGD multiplier
+```
 
-- DPD bucket monitoring from current through default and repossession.
-- Prior-to-current delinquency transition matrix.
-- Cure, roll-forward, write-off, and repossession indicators.
-- Collections, recoveries, collection efficiency, and excess-spread analysis.
+This is intentionally simplified. It does not implement:
 
-### Portfolio performance
+- 12-month ECL for Stage 1 versus lifetime ECL for Stages 2 and 3.
+- Discounting of expected cash shortfalls at the effective interest rate.
+- Probability-weighted forward-looking macroeconomic scenarios.
+- Calibrated transition matrices, PIT/TTC PDs, or regulatory capital treatment.
 
-- Vintage and months-on-book cohort curves.
-- Pool factor, cumulative net loss, remaining balance, and recovery trends.
-- Cash-flow waterfall analysis across collections, fees, interest, principal, and residual distribution.
-
-### Stress testing
-
-The dashboard applies transparent PD and LGD multipliers to the selected portfolio:
+The scenario multipliers are illustrative sensitivity assumptions, not calibrated values:
 
 | Scenario | PD multiplier | LGD multiplier |
 | --- | ---: | ---: |
@@ -138,116 +118,131 @@ The dashboard applies transparent PD and LGD multipliers to the selected portfol
 | COVID Shock | 1.80× | 1.20× |
 | 2008 Crisis | 2.00× | 1.50× |
 
-## Data included
+## Architecture and data flow
 
-| File | Purpose | Rows in current sample |
-| --- | --- | ---: |
-| auto_loan_securitisation_data.csv | Loan, borrower, vehicle, credit, balance, and IFRS 9 fields | 500 |
-| dpd_snapshot_history.csv | Monthly DPD snapshots, transitions, cures, repossessions, and write-offs | 6,000 |
-| dynamic_loss_monthly.csv | Monthly balances, losses, recoveries, collections, and rates | 12 |
-| static_pool_vintage_data.csv | Vintage-level performance across months on book | 375 |
+```mermaid
+flowchart LR
+    A[Four CSV source tables] --> B[Python loading and validation]
+    B --> C[Current Streamlit CSV demo]
+    A -. optional load .-> D[MySQL warehouse tables]
+    D --> E[MySQL views and analytics SQL]
+    E -. optional reporting .-> F[BI or SQL outputs]
+    B --> G[Baseline PD model]
+    G --> H[PD diagnostics and scores]
+```
 
-The files are synthetic portfolio data intended for analytics demonstration and portfolio-project use.
+The solid path is the currently working Streamlit demo. The dotted path is the optional MySQL implementation route; the current Streamlit app does not yet query MySQL directly.
 
-## Technology stack
+## Reproducibility
 
-- Python, pandas, NumPy, Plotly, and Streamlit.
-- MySQL-compatible SQL for warehouse and analytical patterns.
-- Power BI for management and investor reporting.
-- Git and GitHub for version control.
+Generate a fresh synthetic portfolio without overwriting the checked-in sample:
+
+```bash
+python data/generate_synthetic_portfolio.py --seed 42 --output-dir data/generated
+```
+
+The generator creates 500 loans, 6,000 snapshots, 12 monthly loss rows, and 375 vintage rows by default. The fixed seed makes the generated sample repeatable.
+
+## SQL scope
+
+This project uses MySQL as its database target. The SQL layer is documented honestly as an optional warehouse-pattern implementation:
+
+- create_tables.sql — warehouse table definitions.
+- indexes.sql — query-performance indexes.
+- views.sql — reusable portfolio and IFRS 9 views.
+- ctes.sql — high-risk loan analysis with CTEs.
+- window_functions.sql — rankings and running metrics.
+- stored_procedures.sql — refresh procedure example.
+- banking_analytics.sql — portfolio-level queries.
+- ifrs9_analytics.sql — ECL and stage analysis.
+- roll_rate_analytics.sql — DPD transition analysis.
+- vintage_analytics.sql — cohort performance.
+- collection_analytics.sql — collections and recoveries.
+- stress_testing_framework.sql — scenario sensitivity analysis.
+
+## Data-quality approach
+
+The application and tests cover:
+
+- Required file availability and schema checks.
+- Date parsing and standardized reporting dates.
+- Duplicate LoanID detection.
+- Missing-value snapshots.
+- Filter-aware portfolio calculations.
+- Leakage-aware PD feature selection.
+- Reproducible synthetic-data generation.
+
+## Reproduce and test locally
+
+```powershell
+python -m venv .venv
+.\\.venv\\Scripts\\Activate.ps1
+pip install -r requirements-dev.txt
+python -m streamlit run app.py
+pytest -q
+```
+
+The repository also includes a GitHub Actions workflow that compiles the Python files and runs pytest on pushes and pull requests.
+
+## Screenshot gallery
+
+The repository contains Power BI and simulation screenshots for browser-viewable previews. The PBIX report itself requires Microsoft Power BI Desktop. There is currently no public live demo; run the Streamlit app locally using the commands above.
 
 ## Repository structure
 
 ```text
-Banking-Risk-Analytics-Platform-master/
-├── app.py                              # Streamlit dashboard application
-├── requirements.txt                    # Python dependencies
-├── RUN_INSTRUCTIONS.md                 # Local and Streamlit deployment guide
-├── data/                               # Synthetic portfolio CSV files
+Banking-Risk-Analytics-Platform-/
+├── app.py
+├── data/
+│   ├── auto_loan_securitisation_data.csv
+│   ├── dpd_snapshot_history.csv
+│   ├── dynamic_loss_monthly.csv
+│   ├── static_pool_vintage_data.csv
+│   └── generate_synthetic_portfolio.py
+├── risk_modeling/
+│   └── pd_model.py
+├── etl/                              # Extract, load, validation, and connection utilities
+├── sql/                              # Optional MySQL warehouse and analytics scripts
 ├── documentation/
-│   ├── data_dictionary.txt             # Core dimensions and facts
-│   ├── warehouse_architecture.txt      # Raw, staging, dimension, and fact layers
-│   ├── advanced_sql_features.txt       # Views, indexes, CTEs, windows, procedures
-│   ├── stress_testing_framework.txt    # Scenario and impact framework
-│   └── screenshots/                    # Power BI and simulation screenshots
-├── etl/                                # Extract, validation, and load utilities
-├── sql/                                # Warehouse DDL and risk analytics queries
-└── powerbi/
-    └── Securitisation_Risk_Analytics.pbix
+│   ├── data_dictionary.md
+│   ├── warehouse_architecture.md
+│   ├── advanced_sql_features.md
+│   ├── stress_testing_framework.md
+│   └── screenshots/
+├── powerbi/
+│   ├── Securitisation_Risk_Analytics.pbix
+│   ├── Securitisation_Risk_Analytics_screenshot_preview.pdf
+│   └── README.md
+├── tests/
+├── .github/workflows/ci.yml
+├── requirements.txt
+├── requirements-dev.txt
+├── RUN_INSTRUCTIONS.md
+└── LICENSE
 ```
 
-## Run locally
+## Business impact
 
-### 1. Clone the repository
+The project supports risk and operations teams by helping them:
 
-```bash
-git clone https://github.com/Vishal123-tech/Banking-Risk-Analytics-Platform-.git
-cd Banking-Risk-Analytics-Platform-
-```
+- Prioritize collection review using DPD transitions and high-risk exposures.
+- Identify provisioning pressure under illustrative stress scenarios.
+- Compare portfolio quality across IFRS 9 stages, servicers, regions, and vintages.
+- Review cash-flow waterfall performance and investor-facing portfolio trends.
+- Move from descriptive reporting toward reproducible, testable risk analytics.
 
-### 2. Create an environment and install dependencies
+## Limitations and next steps
 
-```bash
-python -m venv .venv
-```
+- Replace synthetic fields with observed loan-level performance and macroeconomic history.
+- Build a larger default sample and recalibrate the PD model before interpreting AUC/KS.
+- Connect the Streamlit app to a MySQL view or a production-style warehouse layer.
+- Add proper lifetime ECL, effective-interest discounting, and probability-weighted scenarios.
+- Align the policy framing to a selected jurisdiction, such as RBI/Ind AS 109, if the project is presented as India-specific.
+- Add a native Power BI PDF export after opening the PBIX in Power BI Desktop.
 
-Windows PowerShell:
+## License
 
-```powershell
-.\\.venv\\Scripts\\Activate.ps1
-```
-
-macOS/Linux:
-
-```bash
-source .venv/bin/activate
-```
-
-```bash
-pip install -r requirements.txt
-```
-
-### 3. Start the dashboard
-
-```bash
-streamlit run app.py
-```
-
-Streamlit will open the dashboard in your browser. Keep the repository structure intact so the app can find the four files in data/.
-
-## SQL and ETL workflow
-
-The SQL folder is organized so the project can be extended from a CSV demo into a warehouse-backed implementation:
-
-1. Create warehouse tables with sql/create_tables.sql.
-2. Add indexes and reusable views.
-3. Load or transform data with the utilities in etl/.
-4. Run portfolio, IFRS 9, roll-rate, vintage, collection, and stress-testing queries.
-5. Connect the resulting tables or views to Power BI.
-
-The SQL examples demonstrate views, CTEs, window functions, stored procedures, and indexes rather than relying only on dashboard calculations.
-
-## Data-quality approach
-
-The project demonstrates practical checks for:
-
-- Missing files and required columns.
-- Date parsing and standardized reporting dates.
-- Duplicate loan and snapshot records.
-- Numeric and categorical field consistency.
-- Filter-aware portfolio calculations.
-- Transparent stress-test assumptions.
-
-## Important assumptions
-
-- ECL stress results are scenario-analysis outputs, not regulatory capital advice.
-- The included data is synthetic and does not represent any real borrower, bank, lender, or securitisation trust.
-- The Power BI report requires Microsoft Power BI Desktop to open.
-- MySQL is optional for the Streamlit demo; the dashboard reads the included CSV files directly.
-
-## Why this project matters
-
-This portfolio project demonstrates the complete path from raw financial data to business insight: data quality, warehouse thinking, credit-risk metrics, delinquency movement, loss forecasting, stress testing, and executive-ready reporting.
+MIT License. The public Olist-style or synthetic data used in this portfolio project may have separate dataset terms.
 
 ## Author
 
